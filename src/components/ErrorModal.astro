@@ -1,0 +1,19 @@
+---
+// This is the modal content
+
+---
+
+<div class="ion-text-center">
+  <p>Opps, da ist etwas schief gelaufen.</p>
+
+  <ion-button id="close-button">Schließen</ion-button>
+</div>
+
+<script>
+  import { modalController } from '@ionic/core';
+
+  document.getElementById('close-button')?.addEventListener('click', async () => {
+    const modal = await modalController.getTop();
+    await modal?.dismiss();
+  });
+</script>

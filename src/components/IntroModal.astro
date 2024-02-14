@@ -1,0 +1,306 @@
+---
+import LanguageSwitcher from "../components/LanguageSwitcher.astro";
+// import { astroI18n, t } from "astro-i18n";
+
+const isLastSlide = true;
+// const slides = t("description");
+
+// console.log('Slides:', slides);
+
+console.log('Astro:', Astro.cookies);
+
+---
+
+<div>
+  <ion-row>
+    <ion-col class="center">
+      <LanguageSwitcher />
+    </ion-col>
+    <ion-col>
+      <!-- Close Button -->
+      <ion-button
+        class="close-button"
+        fill="clear"
+        color="light"
+        disabled={!isLastSlide}
+      >
+        <ion-icon icon="close" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-col>
+  </ion-row>
+
+  <div class="content">
+    <ul class="scroll-snap-slider" id="sliderRef">
+      <li class="scroll-snap-slide">
+        <ion-card class="intro-card">
+          <div class="video-container">
+            <video
+              id="videoRefs"
+              loop="true"
+              muted="true"
+              playsinline="true"
+              preload="true"
+              autoplay="true"
+              width="100%"
+              height="100%"
+            >
+              <source src="videos/camera-intro-1-en.mp4" type="video/mp4" />
+            </video>
+            <div id="countdown" class="countdown"></div>
+          </div>
+          <ion-list lines="none">
+            <!-- {items.map((item) => (
+              <>
+                <li>Rote {item}</li>
+                <li>Blaue {item}</li>
+                <li>Grüne {item}</li>
+              </>
+            ))} -->
+            <ion-item onclick="item.checked = !item?.checked">
+              <ion-icon slot="start" icon="document" color="light"></ion-icon>
+              <ion-label class="ion-text-wrap">
+                <!-- <vue-markdown source="rt(item.text)"></vue-markdown> -->
+              </ion-label>
+            </ion-item>
+          </ion-list>
+
+          <!-- <ion-button class="button-next" size="small" expand="block" strong onclick="slideNext()">
+                {{ isLastSlide ? rt(lang?.buttons?.close) : rt(lang?.buttons?.continue) }}
+              </ion-button> -->
+
+          <div class="phone-support">
+            <p class="phone-text">Call Us</p>
+            <a class="button-phone" href="tel:1234567890">1234567890</a>
+            Click Here
+          </div>
+        </ion-card>
+      </li>
+    </ul>
+  </div>
+
+  <div class="slider-pagination">
+    <!-- <div class="dot" v-for="(dot, index) in lang?.slides" key="'dot-' + (index + 1)" class="{ active: activeIndex === index }"></div>-->
+  </div>
+</div>
+<ion-fab-button
+  color="primary"
+  class="button-next"
+  onclick="introModal.slideNext()"
+>
+  <ion-icon size="large" icon={ isLastSlide? 'close' : 'chevron-forward' }></ion-icon>
+</ion-fab-button>
+
+<script>
+  import { IntroModal } from "../utils/intromodal";
+  import { modalController } from '@ionic/core';
+  const videoRefs = document.querySelectorAll("video#videoRefs") as unknown as HTMLVideoElement[];
+  const sliderRef = document.querySelector("ul#sliderRef") as unknown as HTMLUListElement;
+  const path = window.location.pathname.split("/").pop();
+  const introModal = new IntroModal(sliderRef, videoRefs, path);
+
+  document.addEventListener('localeChange', (event) => {
+  const newLocale = (event as CustomEvent).detail.newLocale;
+  const oldLocale = (event as CustomEvent).detail.oldLocale;
+  if (oldLocale !== newLocale) {
+    // Call your functions here
+    introModal.reloadVideos();
+    introModal.toggleVideos();
+  }
+});
+
+type Slides = Slide[];
+
+type Slide = {
+  video: string;
+  items: any;
+}
+
+document.querySelector('.close-button')?.addEventListener('click', () => {
+  console.log('Close Button Clicked');
+  modalController.dismiss();
+});
+
+</script>
+
+<style scoped lang="scss">
+  @import "scroll-snap-slider";
+
+  .scroll-snap-slider {
+    margin: 0;
+    width: 100vw;
+    height: auto;
+    padding: 0 0 10px 0;
+
+    &.disabled {
+      touch-action: none;
+    }
+  }
+
+  .scroll-snap-slide {
+    scroll-snap-stop: always;
+  }
+
+  .close-button {
+    position: relative;
+    float: right;
+
+    ion-icon {
+      font-size: 2.4em;
+    }
+  }
+
+  .intro-card {
+    display: relative;
+    width: 90%;
+    margin: 0 auto;
+    padding: 20px 16px;
+    border-radius: 24px;
+    max-width: 500px;
+    --background: white;
+
+    .video-container {
+      position: relative;
+      width: 100%;
+      height: auto;
+
+      video {
+        object-fit: fill;
+        width: 100%;
+        height: 100%;
+        aspect-ratio: 0.85;
+        border-radius: 20px;
+      }
+
+      .countdown {
+        position: absolute;
+        right: 0;
+        margin: -37px 10px 0 0;
+        color: white;
+        background: rgba(0, 0, 0, 0.6);
+        width: 24px;
+        height: 24px;
+        border-radius: 100px;
+        text-align: center;
+        padding-top: 2px;
+      }
+    }
+  }
+
+    ion-list {
+      margin: 6px 0;
+
+      ion-item {
+        --min-height: 0;
+        --padding-start: 0px;
+        --padding-end: 0px;
+
+        ion-icon {
+          margin-inline: 0px 10px;
+          background: var(--ion-color-primary);
+          border-radius: 100px;
+          padding: 6px;
+          font-size: 1.3em;
+        }
+      }
+    }
+
+  .slider-pagination {
+    display: flex;
+    justify-content: center;
+
+    .dot {
+      display: inline;
+      width: 24px;
+      height: 6px;
+      border-radius: 100px;
+      margin: 0 4px;
+      background-color: rgba(var(--ion-color-light-rgb), 0.5);
+
+      &.active {
+        background-color: var(--ion-color-primary);
+      }
+    }
+  }
+
+  .button-next {
+    position: absolute;
+    left: calc(100vw - 4em);
+    top: calc(75vh - 4em);
+    float: right;
+    height: 4em;
+    width: 4em;
+    margin: 0;
+  }
+
+  .phone-support {
+    margin: 20px 0 0 0;
+    animation: wiggle 3s infinite;
+
+    .phone-text {
+      margin: 0;
+      text-align: center;
+      font-weight: 500;
+    }
+
+    .button-phone {
+      margin: 0;
+      height: 2em;
+      text-decoration: none;
+      display: block;
+      text-align: center;
+    }
+  }
+
+  ion-row,
+  ion-col {
+    margin: 0;
+    padding: 0;
+
+    .center {
+      display: flex;
+      align-items: center;
+      margin-left: 20px;
+    }
+  }
+</style>
+
+<style lang="scss">
+  ion-label {
+    line-height: 1.2 !important;
+    margin: 0 !important;
+  }
+
+  // #intro-modal {
+  //   position: absolute;
+  //   width: 100vw;
+  //   height: 100vh;
+  //   top: 0;
+  //   background: rgba(0, 0, 0, 0.5);
+  //   backdrop-filter: blur(4px);
+  //   z-index: 999999;
+  //   margin: 0;
+  //   padding: 0;
+  // }
+
+  @keyframes wiggle {
+    0% {
+      transform: rotate(0deg);
+    }
+
+    80% {
+      transform: rotate(0deg);
+    }
+
+    85% {
+      transform: rotate(4deg);
+    }
+
+    95% {
+      transform: rotate(-4deg);
+    }
+
+    100% {
+      transform: rotate(0deg);
+    }
+  }
+</style>

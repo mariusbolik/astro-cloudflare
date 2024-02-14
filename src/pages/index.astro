@@ -1,0 +1,310 @@
+---
+// Layouts / Components
+import Layout from "../layouts/Layout.astro";
+
+// Libraries
+import LanguageSwitcher from "../components/LanguageSwitcher.astro";
+import { getTranslations } from "../utils/i18n";
+import type { Locale } from "../utils/i18n";
+
+// Modals
+import IntroModal from "../components/IntroModal.astro";
+import ErrorModal from "../components/ErrorModal.astro";
+
+const showIntroModal = false;
+
+const lang = Astro.cookies.get('lang')?.value as Locale;
+const t = getTranslations('camera', lang) as any;
+// console.log("Translations:", t);
+
+---
+
+<Layout title="Camera">
+  <ion-page ref="fullscreenContainer">
+    <!-- Header  -->
+    <ion-header>
+      <ion-toolbar>
+        <ion-buttons slot="start">
+          <LanguageSwitcher/>
+        </ion-buttons>
+
+        <ion-title color="light" size="small" class="ion-text-wrap">
+          <p class="description">
+            <center>{t?.description}</center> 
+          </p>
+        </ion-title >
+        <ion-buttons slot="end">
+          <ion-button shape="round" color="light" class="info" fill="clear" style="transform: scale(1.2);" href="/faq">
+            <ion-icon src="/img/icons/icon-faq.svg"/>
+          </ion-button>
+        </ion-buttons>
+
+      </ion-toolbar>
+    </ion-header>
+
+    <!-- Content -->
+    <ion-content scroll-y="false" fullscreen="true">
+
+      <ion-segment value="left" @ion-change="$event => switchFoot($event.detail.value)">
+        <ion-segment-button value="left">
+          <ion-label>Right Foot</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="right">
+          <ion-label>Left Foot</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+
+      <div class="camera-container">
+        <video id="videoEl" class="bg-video" playsinline="true" autoplay muted></video>
+        <img src="/img/camera/left-foot-template.png" class="foot-template" class="invert" />
+        <div class="camera-frame"></div>
+      </div>
+
+      <!-- Intro Modal -->
+      <ion-modal trigger="intro-modal" open={showIntroModal} css-class="intro-modal">
+        <IntroModal />
+      </ion-modal>
+
+      <!-- Intro Modal -->
+      <ion-modal id="error-modal" css-class="error-modal">
+        <ErrorModal />
+      </ion-modal>
+
+      <!-- Loading Indicator -->
+      <ion-loading id="loading" message="Processing Image" duration="10000" spinner="crescent"></ion-loading>
+    </ion-content>
+
+    <ion-footer>
+      <!-- Camera buttons -->
+      <ion-row class="camera-buttons">
+        <ion-col size="12">
+          <ion-button expand="block" fill="clear" id="demo-image-button">Use Demo Image</ion-button>
+        </ion-col>
+        <ion-col class="ion-text-right">
+          <ion-fab-button class="option"
+            onclick="cameraController.toggleFlash()">
+            <ion-icon icon="flash"></ion-icon>
+          </ion-fab-button>
+        </ion-col>
+        <ion-col class="ion-text-center">
+          <ion-fab-button color="light" class="shutter" id="capture-image">
+          </ion-fab-button>
+        </ion-col>
+        <ion-col>
+          <ion-fab-button class="option" id="intro-modal">
+            <ion-icon icon="help-outline" style="transform: scale(1.2);"></ion-icon>
+          </ion-fab-button>
+        </ion-col>
+      </ion-row>
+    </ion-footer>
+  </ion-page>
+</Layout>
+
+<script>
+import { CameraController } from '../utils/camera';
+import axios from 'axios';
+
+class CameraPage {
+  private loadingController = document.getElementById('loading') as HTMLIonLoadingElement;
+  private errorModal = document.getElementById('error-modal') as HTMLIonModalElement;
+  private cameraController = new CameraController();
+
+  constructor() {
+    window.addEventListener("DOMContentLoaded", async () => {
+      await Promise.allSettled([
+        this.cameraController.startQrScannerCamera(),
+        this.initClickListeners()
+      ]);
+    });
+  }
+
+  private async initClickListeners() {
+    document.getElementById('demo-image-button')?.addEventListener('click', async () => {
+      this.useDemoImage();
+    });
+    document.getElementById('capture-image')?.addEventListener('click', async () => {
+      //
+    });
+  }
+
+  private async useDemoImage() {
+    // Use axios on client side for better browser support
+    const { data } = await axios.get('/img/demo/test-foot-3.jpg', { responseType: 'blob' });
+    await this.uploadImage(data);
+  }
+
+  private async uploadImage(blob: Blob) {
+    try {
+      await this.loadingController.present();
+      // Use axios on client side for better browser support
+      const { data } = await axios.post('/api/predict', blob, {
+        headers: {
+          'Content-Type': 'image/jpeg'
+        },
+        responseType: 'blob'
+      });
+      const cache = await caches.open('images');
+      await cache.put('/api/predict', new Response(data));
+      this.redirectToReviewPage();
+    } catch (error) {
+      console.log(error);
+      this.errorModal.present();
+      // TODO: Show modal
+    } finally {
+      await this.loadingController.dismiss();
+    }
+  }
+
+  private async redirectToReviewPage() {
+    this.cameraController.stopQrScannerCamera();
+    window.location.href = '/review';
+  }
+}
+
+new CameraPage();
+
+
+</script>
+
+<style lang="scss" scoped>
+  ion-footer {
+    position: absolute;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  .camera-buttons {
+    width: 100%;
+    margin: auto;
+    justify-content: center;
+    padding-bottom: 10px;
+  
+    ion-col {
+      flex-grow: unset;
+    }
+  
+    ion-fab-button.shutter {
+      border: 1.5px solid white;
+      border-radius: 100%;
+      padding: 1.5px;
+    }
+  
+    ion-fab-button.option {
+      transform: scale(0.9);
+      --background: rgba(255, 255, 255, 0.5);
+      --background-activated: rgba(255, 255, 255, 0.5);
+      --background-focused: rgba(255, 255, 255, 0.5);
+    }
+  }
+  
+  ion-toolbar {
+    --background-color: transparent !important;
+    --background: transparent !important;
+    --ion-color-base: transparent !important;
+  }
+  
+  ion-spinner {
+    position: absolute;
+  }
+  
+  ion-chip.type {
+    display: block;
+    margin: 0 auto;
+    width: fit-content;
+    background-color: #ffffff1c;
+    color: #fff;
+    font-weight: 600;
+    z-index: 3;
+  }
+  
+  ion-title {
+    padding: 0px;
+    margin-left: -20px;
+  }
+  
+  p.description {
+    position: relative;
+    margin: 10px auto 0;
+    z-index: 3;
+    font-size: 0.9em;
+  
+    width: 100%;
+  
+    text-align: center;
+    color: #fff;
+    
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  ion-segment {
+    z-index: 3;
+    transform: scale(0.75);
+    color: white;
+    max-width: 300px;
+    margin: 0 auto;
+    --background: rgba(var(--ion-color-light-rgb), 0.2);
+  
+    ion-segment-button {
+      --background-checked: var(--ion-color-primary);
+      --indicator-color: rgba(var(--ion-color-primary-rgb), 0.2);
+    }
+  }
+  
+  .camera-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: black;
+    padding: 110px 20px 90px 20px;
+  
+    .foot-template {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      margin-left: -40px;
+      margin-top: 20px;
+      opacity: 0.6;
+      height: 60vh;
+      width: 100%;
+      object-fit: cover;
+  
+      &.invert {
+        margin-left: 40px;
+        transform: translate(-50%, -50%) rotateY(180deg);
+      }
+    }
+  
+    video {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: -1;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      pointer-events: none;
+    }
+  
+    .camera-frame {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      box-shadow: 0px 0px 0px 200px rgba(0, 0, 0, 0.3);
+    }
+  }
+  
+  .info {
+    box-shadow: none;
+  
+    img {
+      filter: brightness(0) invert(1);
+    }
+  }
+  </style>../libs/appwrite

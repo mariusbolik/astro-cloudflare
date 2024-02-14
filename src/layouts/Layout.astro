@@ -1,0 +1,44 @@
+---
+import "@ionic/core";
+import "../styles/colors.scss";
+import "../styles/global.scss";
+
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+
+const lang = Astro.cookies.get("lang")?.value || "en";
+---
+
+<!doctype html>
+<html lang={lang} class="ios">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="robots" content="noindex">
+    <meta name="description" content="mySHOEFITTER" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <script type="module" src="/node_modules/@ionic/core/dist/ionic/ionic.esm.js"></script>
+    <script nomodule src="/node_modules/@ionic/core/dist/ionic/ionic.js"></script>
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+  </head>
+  <body>
+    <slot />
+    <!-- Background Circles -->
+    <div class="big-circle left"></div>
+    <div class="small-circle right"></div>
+  </body>
+</html>
+
+<script>
+  // Set ios specific styles
+  window.addEventListener("DOMContentLoaded", async () => {
+    document.querySelector("html")?.classList.remove("md");
+    document.querySelector("html")?.setAttribute("mode", "ios");
+  });
+</script>
+
+<style></style>

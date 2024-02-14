@@ -1,0 +1,56 @@
+---
+import Layout from "../layouts/Layout.astro";
+
+const footDimensions = {
+  length: 0,
+  width: 0,
+};
+
+const scanCookie = Astro.cookies.get("scan")?.value;
+const scan = scanCookie ? JSON.parse(scanCookie) : null;
+---
+
+<Layout title="Ergebnis">
+  <ion-header>
+    <ion-toolbar>
+      <ion-buttons slot="start">
+        <ion-button href="/review">
+          <ion-icon icon="arrow-back" slot="icon-only"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+      <img class="logo" :src="config?.logo" />
+      <ion-buttons slot="end">
+        <ion-button href="/faq" shape="round" class="info">
+          <ion-icon style="transform: scale(1.2)" src="/img/icons/icon-faq.svg"
+          ></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-header>
+  <ion-content fullscreen={true}>
+    <ion-row>
+      <ion-col>
+        <ion-card>
+          <ion-card-content class="ion-text-center">
+            <p class="text">
+              Länge<br /><b>{scan?.length?.toFixed(2) || "N/a"} mm</b>
+            </p>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+      <ion-col>
+        <ion-card>
+          <ion-card-content class="ion-text-center">
+            <p class="text">
+              Breite:<br /><b>{scan?.width?.toFixed(2) || "N/a"} mm</b>
+            </p>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+    </ion-row>
+  </ion-content>
+
+  <script></script>
+
+  <style lang="scss"></style>
+</Layout>

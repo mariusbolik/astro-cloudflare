@@ -1,0 +1,134 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { getTranslations } from "../utils/i18n";
+import type { Locale } from "../utils/i18n";
+
+const lang = Astro.cookies.get("lang")?.value as Locale;
+const t = getTranslations("review", lang) as any;
+---
+
+<Layout title="Ergebnis">
+  <ion-header>
+    <ion-toolbar>
+      <ion-buttons slot="start">
+        <ion-button href="/">
+          <ion-icon icon="arrow-back" slot="icon-only"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+      <ion-title>{t?.title}</ion-title>
+      <ion-buttons slot="end">
+        <ion-button id="finish-button" color="primary" shape="round" size="small">
+          Fertig
+        </ion-icon>
+        </ion-button>
+        <ion-button size="small" href="/settings" shape="round"></ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-header>
+  <ion-content fullscreen={true} scroll-y={false}>
+
+
+    <!--
+      TODO 1:
+      Add SVG Element here
+      Use interact.js or other library (https://interactjs.io/)
+      Update Cookie with new position
+     -->
+
+    <!--
+      TODO 2:
+      Calculate live shoe size in util file - use Cookie 'sizes'
+     -->
+
+
+    <div class="svg-container">
+      <img src="#" id="image-preview" />
+    </div>
+  </ion-content>
+
+  <script>
+    import Cookies from 'js-cookie';
+    import type { Scan } from "../types/types";
+
+    class  ReviewPage {
+
+      private scanResult: Scan | null = null;
+  
+      constructor() {
+        this.getScanResult();
+        this.getImage();
+        this.getSizes();
+
+        document.getElementById("finish-button")?.addEventListener("click", () => {
+          this.updateScanResult();
+        });
+      }
+
+      updateScanResult() {
+        Cookies.set("scan", JSON.stringify(this.scanResult));
+        Cookies.set("result", '43');
+        window.location.href = "/result";
+      }
+
+      getSizes() {
+        const sizesCookie = Cookies.get("sizes");
+
+        if (typeof sizesCookie !== "string") {
+          console.error("No sizes found");
+          return;
+        }
+
+        const sizes = JSON.parse(sizesCookie);
+        console.log("Sizes:", sizes?.eur);
+      }
+
+      getScanResult() {
+        const scanCookie = Cookies.get("scan");
+
+        if (typeof scanCookie !== "string") {
+          console.error("No scan result found");
+          return;
+        }
+
+        this.scanResult = JSON.parse(scanCookie);
+
+        console.log("Scan Result:", this.scanResult);
+      }
+
+      async getImage() {
+        const cache = await caches.open("images");
+        const response = await cache.match("/api/predict");
+        const blob = await response?.blob();
+        console.log("Blob:", blob);
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          const imageEl = document.getElementById("image-preview") as HTMLImageElement;
+          if (imageEl) {
+            imageEl.src = url;
+          }
+        } else {
+          console.error("No image found in cache");
+        }
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      new ReviewPage();
+    });
+
+  </script>
+
+  <style lang="scss">
+
+    ion-toolbar {
+      --background: transparent;
+    }
+
+    .svg-container {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+    }
+  </style>
+</Layout>

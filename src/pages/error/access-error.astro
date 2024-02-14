@@ -1,0 +1,37 @@
+---
+import Layout from "../../layouts/Layout.astro";
+
+function getBrowserFromUserAgent() {
+  const userAgent = Astro.request.headers.get("user-agent")?.toLowerCase();
+
+  if (userAgent?.includes("opr") || userAgent?.includes("opt")) {
+    return "opera";
+  } else if (userAgent?.includes("safari")) {
+    return "safari";
+  } else if (userAgent?.includes("chrome")) {
+    return "chrome";
+  } else if (userAgent?.includes("firefox")) {
+    return "firefox";
+  } else {
+    return "other";
+  }
+}
+---
+
+<Layout title="Error: Kamerazugriff">
+  <ion-header>
+    <ion-toolbar>
+      <ion-title>Astro Test</ion-title>
+    </ion-toolbar>
+  </ion-header>
+  <ion-content>
+    <!-- Todo: Add manual that shows user how to grant camera access
+    Detemine wich tutorial to show by user agent header -->
+  </ion-content>
+</Layout>
+
+<script>
+  // Todo:
+  // - Check if user granted access in one second interval
+  // - If user granted access, redirect back to camera
+</script>

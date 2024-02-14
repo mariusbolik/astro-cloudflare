@@ -1,0 +1,51 @@
+{
+  "name": "mysf-astro",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "browser": {
+    "fs": false,
+    "os": false,
+    "path": false,
+    "stream": false,
+    "util": false,
+    "url": false,
+    "https": false,
+    "child_process": false,
+    "node:child_process": false
+  },
+  "dependencies": {
+    "@astrojs/check": "^0.3.2",
+    "@astrojs/cloudflare": "^9.0.0",
+    "@astrojs/node": "^8.2.0",
+    "@ionic/core": "^7.6.4",
+    "@techstark/opencv-js": "^4.9.0-release.2",
+    "appwrite": "^13.0.1",
+    "astro": "^4.3.7",
+    "axios": "^1.6.7",
+    "image-conversion": "^2.1.1",
+    "ionicons": "^7.2.2",
+    "js-cookie": "^3.0.5",
+    "localforage": "^1.10.0",
+    "nanoid": "^5.0.5",
+    "node-appwrite": "^11.1.0",
+    "posthog-node": "^3.6.1",
+    "qr-scanner": "^1.4.2",
+    "scroll-snap-slider": "^3.3.0",
+    "sharp": "^0.33.2",
+    "typescript": "^5.3.3"
+  },
+  "devDependencies": {
+    "@types/js-cookie": "^3.0.6",
+    "@types/node": "^20",
+    "@types/sharp": "^0.32.0",
+    "bun-types": "^1.0.26",
+    "sass": "^1.69.5"
+  }
+}

@@ -1,0 +1,100 @@
+---
+import type { Locale } from '../utils/i18n';
+
+// Define the list of locales
+const locales = [
+  { icon: "🇺🇸", name: "English", code: "en" },
+  { icon: "🇩🇪", name: "Deutsch", code: "de" },
+  { icon: "🇪🇸", name: "Español", code: "es" },
+  { icon: "🇫🇷", name: "Français", code: "fr" },
+  { icon: "🇮🇹", name: "Italiano", code: "it" },
+  { icon: "🇵🇹", name: "Português", code: "pt" },
+  { icon: "🇵🇱", name: "Polski", code: "pl" },
+  { icon: "🇷🇺", name: "Русский", code: "ru" },
+  { icon: "🇹🇷", name: "Türkçe", code: "tr" },
+  { icon: "🇦🇪", name: "العربية", code: "ar" },
+  { icon: "🇮🇳", name: "हिन्दी", code: "hi" },
+  { icon: "🇨🇳", name: "中文", code: "zh" },
+  { icon: "🇯🇵", name: "日本語", code: "ja" },
+  { icon: "🇰🇷", name: "한국어", code: "ko" },
+];
+
+// Set the initial selected locale
+var selectedLocale = 'en';
+
+// Set lang from URL params
+try {
+  const lang = Astro.url.searchParams.get('lang') as Locale;
+  if (typeof lang === 'string' && locales.map(l => l.code).includes(lang)) {
+    Astro.cookies.set('lang', lang);
+    selectedLocale = lang;
+  } else {
+    const localeFromCookie = Astro.cookies.get('lang')?.value;
+    if (localeFromCookie && locales.map(l => l.code).includes(localeFromCookie)) {
+      selectedLocale = localeFromCookie;
+    }
+  }
+} catch (error) {
+  console.error(error);
+}
+
+ // Default locale
+console.log(`Selected locale: ${selectedLocale}`);
+---
+
+<ion-select
+  id="lang-switch"
+  aria-label="Language"
+  interface="popover"
+  value={selectedLocale}
+  selected-text="X"
+  label={locales.find(l => l.code === selectedLocale)?.icon}
+  class="hide-icon"
+  interface-options="{cssClass: 'language-switcher', htmlAttributes: { style: '--width: 160px;' }}"
+>
+  {
+    locales.map((locale) => (
+      <ion-select-option value={locale.code} key={locale.code}>
+        {locale.icon} {locale.name}
+      </ion-select-option>
+    ))
+  }
+</ion-select>
+
+<script>
+  import Cookies from 'js-cookie';
+
+  // Define event listener for language switcher
+  const select = document.getElementById("lang-switch") as HTMLIonSelectElement;
+
+  // Add listener to set language on load
+  document.addEventListener("DOMContentLoaded", (ev) => {
+    try {
+      select.addEventListener('ionChange', (e) => {
+        Cookies.set('lang', e.detail.value);
+        window.location.reload();
+      });
+    } catch (error) {
+      console.error("Error Initializing language switcher", error);
+    }
+  });
+</script>
+
+<style scoped lang="scss">
+  ion-select#lang-switch {
+    box-shadow: none;
+    border-radius: 10px;
+    min-height: 30px;
+    padding: 0 0 0 10px;
+    margin-right: 10px;
+    font-size: 1.2em;
+  }
+
+  // Make dropdown icon white
+  ion-select#lang-switch::part(icon) {
+    max-width: 42px;
+    margin-left: -55px;
+    opacity: 0.8;
+    color: white;
+  }
+</style>
